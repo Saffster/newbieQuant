@@ -1,0 +1,17 @@
+README.md
+pyproject.toml
+src/newbie_quant/__init__.py
+src/newbie_quant/backtest.py
+src/newbie_quant/cli.py
+src/newbie_quant/data.py
+src/newbie_quant/features.py
+src/newbie_quant/model.py
+src/newbie_quant/pipeline.py
+src/newbie_quant/signals.py
+src/newbie_quant.egg-info/PKG-INFO
+src/newbie_quant.egg-info/SOURCES.txt
+src/newbie_quant.egg-info/dependency_links.txt
+src/newbie_quant.egg-info/entry_points.txt
+src/newbie_quant.egg-info/requires.txt
+src/newbie_quant.egg-info/top_level.txt
+tests/test_pipeline.py

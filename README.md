@@ -1,139 +1,156 @@
-ML-Based Quant Trading Signal Engine
-Overview
+# ML-Based Quant Trading Signal Engine
 
-This project is a quantitative trading system that combines historical market data, technical indicators, and NLP-based sentiment analysis to predict short-term stock direction and generate buy/sell trading signals.
+This project is a quantitative trading signal engine that combines historical OHLCV data, technical indicators, machine learning, signal generation, and backtesting.
 
-The system is designed not just to predict prices, but to produce profitable trading strategies, validated through backtesting.
+The first working build focuses on the core question:
 
-Objectives
-Predict price direction (up/down) over short horizons (1–5 days)
-Generate trading signals (buy / sell / hold)
-Evaluate performance based on profitability, not just accuracy
-Explore how sentiment data improves model performance
-Build a production-style quant pipeline for portfolio and resume
+> Should we buy, sell, or hold to improve trading performance?
 
-Key Idea
+It trains a baseline classifier to estimate whether the closing price will be higher over a future horizon, maps model probabilities into trading signals, and evaluates the strategy with trading-focused metrics.
 
-This project focuses on decision-making, not just prediction.
+## What Is Built
 
-Instead of asking:
-“What will the price be?”
+- Market data loader for CSV files, optional `yfinance`, or deterministic sample data
+- Technical feature engineering:
+  - 1, 5, and 10 day returns
+  - SMA and EMA ratios
+  - RSI
+  - MACD and MACD signal
+  - rolling volatility
+  - volume change
+  - momentum
+- ML models:
+  - Logistic Regression baseline
+  - Random Forest
+- Signal rules:
+  - `prob_up > 0.60` -> `BUY`
+  - `prob_up < 0.40` -> `SELL`
+  - otherwise -> `HOLD`
+- Backtest engine with:
+  - cumulative return
+  - buy-and-hold return
+  - Sharpe ratio
+  - max drawdown
+  - win rate
+  - trade count
+  - transaction costs
 
-We ask:
-“Should we buy, sell, or do nothing to make profit?”
+## Project Structure
 
-System Architecture
+```text
+src/newbie_quant/
+  backtest.py    # Strategy return and performance metrics
+  cli.py         # Command line entrypoint
+  data.py        # CSV/yfinance/sample OHLCV loading
+  features.py    # Technical indicators and target generation
+  model.py       # Training and prediction
+  pipeline.py    # End-to-end orchestration
+  signals.py     # Probability-to-signal rules
+tests/
+  test_pipeline.py
+```
 
-1. Data Layer
+## Install
 
-Sources:
-Historical stock data (OHLCV)
-Technical indicators
-Market benchmarks (SPY, QQQ, VIX)
-Financial news & headlines
-Optional social media sentiment
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+```
 
-2. Feature Engineering
+Optional live market data support:
 
-Features include:
-Returns over multiple windows
-Moving averages (SMA, EMA)
-RSI, MACD
-Volatility measures
-Volume changes
-Momentum indicators
-Sentiment scores from NLP
+```bash
+python -m pip install -e ".[dev,market-data]"
+```
 
-3. Prediction Layer
+If `yfinance` is not installed or live data is unavailable, the CLI automatically uses deterministic sample OHLCV data. That makes the project runnable offline.
 
-Models:
-Logistic Regression (baseline)
-Random Forest
-XGBoost / LightGBM
+## Run
 
-Target:
-1 → price goes up (future horizon)
-0 → price goes down or stays flat
-4. Signal Generation
-Probability > 0.6 → BUY
-Probability < 0.4 → SELL
-Otherwise → HOLD
-5. Backtesting Engine
+```bash
+newbie-quant
+```
 
-Evaluate using:
-Cumulative return
-Sharpe ratio
-Max drawdown
-Win rate
-Profit factor
-Precision of signals
+Run with the module directly:
 
-Include:
-Transaction costs
-Slippage
-Time-based validation
+```bash
+python -m newbie_quant.cli
+```
 
-Pipeline Flow
+Run with a CSV:
 
-Start
-- Define scope
-- Collect data (market + news)
-- Clean & preprocess
-- Feature engineering
-- Sentiment enrichment (NLP)
-- Model training
-- Prediction
-- Signal generation
-- Backtesting
-- Evaluation & iteration
+```bash
+newbie-quant --csv data/my_prices.csv
+```
 
-Tech Stack
-Python
-Pandas, NumPy
-APIs: Yahoo Finance, Alpha Vantage, NewsAPI
-ML: Scikit-learn, XGBoost, LightGBM
-NLP: NLTK, spaCy, FinBERT
-Visualization: Matplotlib, Plotly
-Backtesting: custom engine
+The CSV must include:
 
-Target Variable
-Will the closing price in the next 5 trading days be higher than today?
+```text
+date,open,high,low,close,volume
+```
 
-1 → Uptrend (buy bias)
-0 → Downtrend / no trade
+Use the random forest model:
 
-Roadmap
-Phase 1 — Baseline Model
+```bash
+newbie-quant --model random_forest
+```
 
-Collect OHLCV data
-Generate indicators
-Train ML model
-Create signals
-Backtest
+Change trading thresholds:
 
-Phase 2 — Sentiment
-Collect news data
-Apply NLP sentiment
-Add features
-Compare results
+```bash
+newbie-quant --buy-threshold 0.65 --sell-threshold 0.35
+```
 
-Phase 3 — Optimization
-Tune models
-Add thresholds
-Add stop-loss / take-profit
-Improve signals
+By default, results are written to:
 
-Phase 4 — Scaling
-Multiple stocks
-Portfolio-level testing
-Risk optimization
+```text
+data/backtest_results.csv
+```
 
-Phase 5 — Production
-Blog / vlog content
+## Test
 
-Future Improvements
-Deep learning (LSTM, Transformers)
-Social media sentiment (Reddit, Twitter)
-Reinforcement learning
-Real-time trading
-API / dashboard deployment
+```bash
+pytest
+```
+
+## Roadmap
+
+### Phase 1: Baseline Model
+
+- Collect OHLCV data
+- Generate indicators
+- Train ML model
+- Create signals
+- Backtest strategy
+
+### Phase 2: Sentiment
+
+- Collect news headlines
+- Apply NLP sentiment
+- Add sentiment features
+- Compare model and backtest performance
+
+### Phase 3: Optimization
+
+- Tune models
+- Optimize thresholds
+- Add stop-loss and take-profit rules
+- Improve signal quality
+
+### Phase 4: Scaling
+
+- Multiple tickers
+- Portfolio-level testing
+- Risk-based position sizing
+
+### Phase 5: Production
+
+- Dashboard
+- API
+- Experiment tracking
+- Blog or video walkthrough
+
+## Notes
+
+This project is for education and research. It is not financial advice, and backtest performance does not guarantee future returns.

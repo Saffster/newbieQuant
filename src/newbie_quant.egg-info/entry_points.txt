@@ -1,0 +1,2 @@
+[console_scripts]
+newbie-quant = newbie_quant.cli:main
